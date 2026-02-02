@@ -4,6 +4,6 @@
   "private": true,
   "description": "Vercel serverless proxy for Google Apps Script HR dashboard API",
   "engines": {
-    "node": "18.x"
+    "node": "24.x"
   }
 }
