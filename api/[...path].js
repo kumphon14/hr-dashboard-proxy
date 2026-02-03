@@ -5,6 +5,37 @@
  * ============================================================
  */
 
+/* ============================================================
+ * Edge Cache Helper (NEW)
+ * ============================================================
+ */
+function applyEdgeCache(res, gasPath) {
+  // Overview & Employees → cache 5 นาที
+  if (gasPath === 'overview' || gasPath === 'employees') {
+    res.setHeader(
+      'Cache-Control',
+      'public, max-age=60, s-maxage=300, stale-while-revalidate=600'
+    );
+    return;
+  }
+
+  // Performance APIs → cache สั้นลง
+  if (gasPath.startsWith('performance/')) {
+    res.setHeader(
+      'Cache-Control',
+      'public, max-age=30, s-maxage=60, stale-while-revalidate=120'
+    );
+    return;
+  }
+
+  // Employee by id → no cache
+  res.setHeader('Cache-Control', 'no-store');
+}
+
+/* ============================================================
+ * Main Handler
+ * ============================================================
+ */
 export default async function handler(req, res) {
   /* =========================
    * 1. CORS
@@ -41,7 +72,6 @@ export default async function handler(req, res) {
   // req.url example: /api/employees?id=123
   const url = new URL(req.url, 'http://localhost');
   const pathname = url.pathname.replace(/^\/api\/?/, '');
-
   const gasPath = pathname || '';
 
   /* =========================
@@ -74,6 +104,11 @@ export default async function handler(req, res) {
     } catch {
       data = text;
     }
+
+    /* =========================
+     * 6. APPLY EDGE CACHE (NEW)
+     * ========================= */
+    applyEdgeCache(res, gasPath);
 
     return res.status(response.status).json(data);
 
